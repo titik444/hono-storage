@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import ProductController from "../controllers/ProductController";
-import AccessValidation from "../validations/AccessValidation";
+import { authenticate, authGuard } from "../middlewares/AccessValidation";
 
 const productRoute = new Hono();
 
-productRoute.use("/product/*", AccessValidation.validateAccessToken);
+productRoute.use("/product/*", authenticate, authGuard(["ADMIN", "MANAGER"]));
 
 productRoute.post("/product", ProductController.createProduct);
 productRoute.get("/product", ProductController.getAllProduct);
