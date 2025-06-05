@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid()) @map("id")
+  name      String     @map("name")
+  email     String     @unique @map("email")
+  role      Role       @map("role")
+  status    UserStatus @default(ACTIVE) @map("status")
+  password  String     @map("password")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  Product        Product[]
+  ProductHistory ProductHistory[]
+
+  @@map("user")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Product {
+  id          String   @id @default(cuid()) @map("id")
+  sku         String   @unique @map("sku")
+  name        String   @map("name")
+  ptName      String   @map("pt_name")
+  description String?  @map("description")
+  stock       Int      @map("stock")
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user           User             @relation(fields: [createdBy], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  ProductHistory ProductHistory[]
+
+  @@map("product")
+}
+
+model ProductHistory {
+  id          String        @id @default(cuid()) @map("id")
+  productId   String        @map("product_id")
+  action      ProductAction @default(CREATED) @map("action")
+  quantity    Int           @map("quantity")
+  stockBefore Int           @map("stock_before")
+  stockAfter  Int           @map("stock_after")
+  description String?       @map("description")
+  changedBy   String        @map("changed_by")
+  changedAt   DateTime      @default(now()) @map("changed_at")
+
+  user    User    @relation(fields: [changedBy], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@map("product_history")
+}
+
+enum ProductAction {
+  CREATED
+  UPDATED
+  DELETED
+  STOCK_IN
+  STOCK_OUT
+}

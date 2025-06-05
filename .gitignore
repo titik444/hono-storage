@@ -1,0 +1,19 @@
+# deps
+node_modules/
+logs/
+.env
+public/*
+!public/.gitkeep
+prisma/migrations/*
+
+# testing
+/coverage
+
+# production
+/build
+/dist
+
+#misc
+DS_Store
+.package-lock.json
+bun.lockb
