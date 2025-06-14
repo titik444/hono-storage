@@ -27,6 +27,13 @@ export const userValidation: ZodType = z.object({
 //   path: ["confirmPassword"],
 // });
 
+// update user validation
+export const updateUserValidation: ZodType = z.object({
+  name: z.string().min(1, { message: "Name cannot be empty" }).optional(),
+  email: z.string().email({ message: "Invalid email format" }).optional(),
+  role: z.enum(["ADMIN", "MANAGER"]).optional(),
+});
+
 export const validateNoPasswordUser: ZodType = z
   .object({
     name: z

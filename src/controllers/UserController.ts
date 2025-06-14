@@ -1,5 +1,9 @@
 import { Context } from "hono";
-import { loginValidation, userValidation } from "../validations/UserValidation";
+import {
+  loginValidation,
+  updateUserValidation,
+  userValidation,
+} from "../validations/UserValidation";
 import Log from "../utils/Logger";
 import UserModel from "../models/UserModel";
 import {
@@ -39,7 +43,7 @@ class UserController {
         200
       );
     } catch (error) {
-      Log.error("Error ./controllers/UserController.getUser " + error);
+      Log.error("Error ./controllers/UserController.verifyUser " + error);
       if (error instanceof Error) {
         let message = error.message;
         try {
@@ -79,15 +83,27 @@ class UserController {
   }
 
   async getCurrentUser(c: Context) {
-    const user = c.get("user") as User;
+    try {
+      const user = c.get("user") as User;
 
-    return c.json({ message: "Get current user success", data: user });
+      return c.json({ message: "Get Current User success", data: user });
+    } catch (error) {
+      Log.error("Error ./controllers/UserController.getCurrentUser " + error);
+      return c.json({ message: "Internal Server Error", data: null }, 500);
+    }
   }
 
   async createUser(c: Context) {
     try {
       const data = await c.req.json();
       const { name, email, role } = await userValidation.parse(data);
+
+      // check user existing
+      const userCheck = await UserModel.findByEmail(email);
+      if (userCheck) {
+        return c.json({ message: "User already exists", data: null }, 400);
+      }
+
       const userInserted = await UserModel.create({
         name,
         email,
@@ -122,10 +138,33 @@ class UserController {
 
   async getAllUser(c: Context) {
     try {
-      const users = await UserModel.findAll();
-      return c.json({ message: "Get users success", data: users });
+      const request = {
+        keyword: c.req.query("q")?.toString() || "",
+        page: Number(c.req.query("page")) || 1,
+        perPage: Number(c.req.query("perPage")) || 10,
+      };
+
+      const users = await UserModel.findAll(request);
+      const totalItems = await UserModel.count(request);
+      const totalPages = Math.ceil(totalItems / request.perPage);
+
+      // if page is greater than total pages, return 404
+      if (request.page > totalPages) {
+        return c.json({ message: "Page not found", data: null }, 404);
+      }
+
+      return c.json({
+        message: "Get users success",
+        data: users,
+        pagination: {
+          currentPage: request.page,
+          perPage: request.perPage,
+          totalPages: totalPages,
+          totalItems: totalItems,
+        },
+      });
     } catch (error) {
-      Log.error("Error ./controllers/UserController.getUsers " + error);
+      Log.error("Error ./controllers/UserController.getAllUser " + error);
       return c.json({ message: "Internal Server Error", data: null }, 500);
     }
   }
@@ -133,35 +172,102 @@ class UserController {
   async getUserById(c: Context) {
     try {
       const id = c.req.param("id");
-      const user = await UserModel.findById(id);
+      const user = await this.userMustExist(id);
+
+      if (!user) {
+        return c.json({ message: "User not found", data: null }, 404);
+      }
+
       return c.json({ message: "Get user success", data: user });
     } catch (error) {
-      Log.error("Error ./controllers/UserController.getUser " + error);
-      return c.json({ message: "Internal Server Error", data: null }, 500);
+      Log.error("Error ./controllers/UserController.getUserById " + error);
+      if (error instanceof Error) {
+        let message = error.message;
+        try {
+          message = JSON.parse(error.message)[0].message;
+        } catch {
+          message = error.message;
+        }
+        return c.json({ message, data: null }, 400);
+      } else {
+        return c.json({ message: "Internal Server Error", data: null }, 500);
+      }
     }
   }
 
   async updateUser(c: Context) {
     try {
       const id = c.req.param("id");
+      const userExist = await this.userMustExist(id);
+
+      if (!userExist) {
+        return c.json({ message: "User not found", data: null }, 404);
+      }
+
+      const { email } = await c.req.json();
+
+      const emailExist = await UserModel.findByEmailNotId(id, email);
+
+      if (emailExist) {
+        return c.json({ message: "Email already exists", data: null }, 400);
+      }
+
       const data = await c.req.json();
+
+      await updateUserValidation.parse(data);
+
       const user = await UserModel.update(id, data);
       return c.json({ message: "Update user success", data: user });
     } catch (error) {
       Log.error("Error ./controllers/UserController.updateUser " + error);
-      return c.json({ message: "Internal Server Error", data: null }, 500);
+      if (error instanceof Error) {
+        let message = error.message;
+        try {
+          message = JSON.parse(error.message)[0].message;
+        } catch {
+          message = error.message;
+        }
+        return c.json({ message, data: null }, 400);
+      } else {
+        return c.json({ message: "Internal Server Error", data: null }, 500);
+      }
     }
   }
 
   async deleteUser(c: Context) {
     try {
       const id = c.req.param("id");
+      const userExist = await this.userMustExist(id);
+
+      if (!userExist) {
+        return c.json({ message: "User not found", data: null }, 404);
+      }
+
       const user = await UserModel.delete(id);
       return c.json({ message: "Delete user success", data: user });
     } catch (error) {
       Log.error("Error ./controllers/UserController.deleteUser " + error);
-      return c.json({ message: "Internal Server Error", data: null }, 500);
+      if (error instanceof Error) {
+        let message = error.message;
+        try {
+          message = JSON.parse(error.message)[0].message;
+        } catch {
+          message = error.message;
+        }
+        return c.json({ message, data: null }, 400);
+      } else {
+        return c.json({ message: "Internal Server Error", data: null }, 500);
+      }
     }
+  }
+
+  private async userMustExist(id: string) {
+    const user = await UserModel.findById(id);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user;
   }
 }
 

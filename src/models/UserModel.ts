@@ -1,6 +1,6 @@
 import { User } from "@prisma/client";
 import { IUserModel } from "./interfaces/IUserModel";
-import prisma from "../utils/prismaClient";
+import prisma, { QueryMode } from "../utils/prismaClient";
 
 class UserModel implements IUserModel {
   constructor() {}
@@ -57,6 +57,8 @@ class UserModel implements IUserModel {
           name: user.name || undefined,
           email: user.email || undefined,
           password: user.password || undefined,
+          role: user.role || undefined,
+          status: user.status || undefined,
         },
       })
       .then((user) => {
@@ -89,6 +91,13 @@ class UserModel implements IUserModel {
     return await prisma.user.findUnique({ where: { email } });
   }
 
+  // find by email and id != id
+  async findByEmailNotId(id: string, email: string): Promise<User | null> {
+    return await prisma.user.findUnique({
+      where: { email, NOT: { id } },
+    });
+  }
+
   async findById(id: string): Promise<User | null> {
     return await prisma.user.findUnique({ where: { id } }).then((user) => {
       if (user) {
@@ -103,13 +112,43 @@ class UserModel implements IUserModel {
    *
    * @returns A promise that resolves to an array of user objects with their passwords hidden.
    */
-  async findAll(): Promise<User[]> {
-    return await prisma.user.findMany().then((users) => {
-      return users.map((user) => {
-        user.password = "********";
-        return user;
+  async findAll(request: {
+    keyword: string;
+    page: number;
+    perPage: number;
+  }): Promise<User[]> {
+    const filter = request.keyword
+      ? {
+          OR: [
+            {
+              name: {
+                contains: request.keyword,
+                mode: QueryMode.insensitive,
+              },
+            },
+            {
+              email: {
+                contains: request.keyword,
+                mode: QueryMode.insensitive,
+              },
+            },
+          ],
+        }
+      : {};
+
+    return await prisma.user
+      .findMany({
+        where: filter,
+        orderBy: { name: "asc" },
+        take: request.perPage,
+        skip: (request.page - 1) * request.perPage,
+      })
+      .then((users) => {
+        return users.map((user) => {
+          user.password = "********";
+          return user;
+        });
       });
-    });
   }
 
   /**
@@ -126,6 +165,32 @@ class UserModel implements IUserModel {
       return user;
     }
     return null;
+  }
+
+  async count(request: {
+    keyword: string;
+    page: number;
+    perPage: number;
+  }): Promise<number> {
+    const filter = request.keyword
+      ? {
+          OR: [
+            {
+              name: {
+                contains: request.keyword,
+                mode: QueryMode.insensitive,
+              },
+            },
+            {
+              email: {
+                contains: request.keyword,
+                mode: QueryMode.insensitive,
+              },
+            },
+          ],
+        }
+      : {};
+    return await prisma.user.count({ where: filter });
   }
 }
 

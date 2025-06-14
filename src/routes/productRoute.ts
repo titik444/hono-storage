@@ -6,10 +6,19 @@ const productRoute = new Hono();
 
 productRoute.use("/product/*", authenticate, authGuard(["ADMIN", "MANAGER"]));
 
-productRoute.post("/product", ProductController.createProduct);
-productRoute.get("/product", ProductController.getAllProduct);
-productRoute.get("/product/:id", ProductController.getProductById);
-productRoute.put("/product/:id", ProductController.updateProduct);
-productRoute.delete("/product/:id", ProductController.deleteProduct);
+productRoute.post("/product", (c) => ProductController.createProduct(c));
+productRoute.get("/product", (c) => ProductController.getAllProduct(c));
+productRoute.get("/product/:id", (c) => ProductController.getProductById(c));
+productRoute.put("/product/:id", (c) => ProductController.updateProduct(c));
+productRoute.delete("/product/:id", (c) => ProductController.deleteProduct(c));
+productRoute.post("/product/:id/stock-in", (c) =>
+  ProductController.increaseStock(c)
+);
+productRoute.post("/product/:id/stock-out", (c) =>
+  ProductController.decreaseStock(c)
+);
+productRoute.get("/product/:id/history", (c) =>
+  ProductController.getProductHistory(c)
+);
 
 export default productRoute;

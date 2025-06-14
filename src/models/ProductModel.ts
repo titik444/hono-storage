@@ -1,6 +1,6 @@
 import { Product, PrismaClient } from "@prisma/client";
 import { IProductModel } from "./interfaces/IProductModel";
-import prisma from "../utils/prismaClient";
+import prisma, { QueryMode } from "../utils/prismaClient";
 
 class ProductModel implements IProductModel {
   private prisma: PrismaClient;
@@ -8,31 +8,112 @@ class ProductModel implements IProductModel {
     this.prisma = prisma;
   }
 
-  create(product: Product): Promise<Product> {
-    return this.prisma.product.create({ data: product });
+  async create(product: Product): Promise<Product> {
+    return await this.prisma.product.create({ data: product });
   }
 
-  update(id: string, product: Product): Promise<Product> {
-    return this.prisma.product.update({
+  async update(id: string, product: Product): Promise<Product> {
+    return await this.prisma.product.update({
       where: { id },
       data: {
-        name: product.name,
+        sku: product.sku || undefined,
+        name: product.name || undefined,
+        ptName: product.ptName || undefined,
+        description: product.description || undefined,
       },
     });
   }
 
-  delete(id: string): Promise<Product> {
-    return this.prisma.product.delete({ where: { id } });
+  async delete(id: string): Promise<Product> {
+    return await this.prisma.product.delete({ where: { id } });
   }
 
-  findById(id: string): Promise<Product | null> {
-    return this.prisma.product.findUnique({
+  async findById(id: string): Promise<Product | null> {
+    return await this.prisma.product.findUnique({
       where: { id },
     });
   }
 
-  findAll(): Promise<Product[]> {
-    return this.prisma.product.findMany();
+  async findBySku(sku: string): Promise<Product | null> {
+    return await this.prisma.product.findUnique({
+      where: { sku },
+    });
+  }
+
+  async findByName(name: string): Promise<Product | null> {
+    return await this.prisma.product.findUnique({
+      where: { name },
+    });
+  }
+
+  async findBySkuNotId(id: string, sku: string): Promise<Product | null> {
+    return await this.prisma.product.findUnique({
+      where: { sku, NOT: { id } },
+    });
+  }
+
+  async findByNameNotId(id: string, name: string): Promise<Product | null> {
+    return await this.prisma.product.findUnique({
+      where: { name, NOT: { id } },
+    });
+  }
+
+  async findAll(request: {
+    keyword: string;
+    page: number;
+    perPage: number;
+  }): Promise<Product[]> {
+    const filter = request.keyword
+      ? {
+          OR: [
+            {
+              name: {
+                contains: request.keyword,
+                mode: QueryMode.insensitive,
+              },
+            },
+            {
+              ptName: {
+                contains: request.keyword,
+                mode: QueryMode.insensitive,
+              },
+            },
+          ],
+        }
+      : {};
+
+    return await this.prisma.product.findMany({
+      where: filter,
+      orderBy: { name: "asc" },
+      skip: (request.page - 1) * request.perPage,
+      take: request.perPage,
+    });
+  }
+
+  async count(request: {
+    keyword: string;
+    page: number;
+    perPage: number;
+  }): Promise<number> {
+    const filter = request.keyword
+      ? {
+          OR: [
+            {
+              name: {
+                contains: request.keyword,
+                mode: QueryMode.insensitive,
+              },
+            },
+            {
+              ptName: {
+                contains: request.keyword,
+                mode: QueryMode.insensitive,
+              },
+            },
+          ],
+        }
+      : {};
+    return await this.prisma.product.count({ where: filter });
   }
 }
 

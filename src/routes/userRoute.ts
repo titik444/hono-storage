@@ -4,17 +4,18 @@ import { authenticate, authGuard } from "../middlewares/AccessValidation";
 
 const userRoute = new Hono();
 
-userRoute.post("/auth/login", UserController.verifyUser);
-userRoute.get("/auth/refresh", UserController.refreshToken);
-
-userRoute.get("/auth/me", authenticate, UserController.getCurrentUser);
+userRoute.get("/auth/me", authenticate, (c) =>
+  UserController.getCurrentUser(c)
+);
+userRoute.post("/auth/login", (c) => UserController.verifyUser(c));
+userRoute.get("/auth/refresh", (c) => UserController.refreshToken(c));
 
 userRoute.use("/user/*", authenticate, authGuard(["MANAGER"]));
 
-userRoute.post("/user", UserController.createUser);
-userRoute.get("/user", UserController.getAllUser);
-userRoute.get("/user/:id", UserController.getUserById);
-userRoute.put("/user/:id", UserController.updateUser);
-userRoute.delete("/user/:id", UserController.deleteUser);
+userRoute.post("/user", (c) => UserController.createUser(c));
+userRoute.get("/user", (c) => UserController.getAllUser(c));
+userRoute.get("/user/:id", (c) => UserController.getUserById(c));
+userRoute.put("/user/:id", (c) => UserController.updateUser(c));
+userRoute.delete("/user/:id", (c) => UserController.deleteUser(c));
 
 export default userRoute;

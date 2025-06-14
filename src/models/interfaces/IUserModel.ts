@@ -7,5 +7,14 @@ export interface IUserModel {
   findByEmail(email: string): Promise<User | null>;
   verifyUser(email: string, password: string): Promise<User | null>;
   findById(id: string): Promise<User | null>;
-  findAll(): Promise<User[]>;
+  findAll(request: {
+    keyword: string;
+    page: number;
+    perPage: number;
+  }): Promise<User[]>;
+  count(request: {
+    keyword: string;
+    page: number;
+    perPage: number;
+  }): Promise<number>;
 }

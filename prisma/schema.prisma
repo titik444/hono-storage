@@ -42,7 +42,7 @@ enum UserStatus {
 model Product {
   id          String   @id @default(cuid()) @map("id")
   sku         String   @unique @map("sku")
-  name        String   @map("name")
+  name        String   @unique@map("name")
   ptName      String   @map("pt_name")
   description String?  @map("description")
   stock       Int      @map("stock")
