@@ -148,8 +148,14 @@ class UserController {
       const totalItems = await UserModel.count(request);
       const totalPages = Math.ceil(totalItems / request.perPage);
 
-      // if page is greater than total pages, return 404
-      if (request.page > totalPages) {
+      // Check if page is valid
+      const page = request.page;
+
+      if (
+        page < 1 ||
+        (totalPages === 0 && page > 1) ||
+        (totalPages > 0 && page > totalPages)
+      ) {
         return c.json({ message: "Page not found", data: null }, 404);
       }
 

@@ -85,8 +85,14 @@ class ProductController {
       const totalItems = await ProductModel.count(request);
       const totalPages = Math.ceil(totalItems / request.perPage);
 
-      // if page is greater than total pages, return 404
-      if (request.page > totalPages) {
+      // Check if page is valid
+      const page = request.page;
+
+      if (
+        page < 1 ||
+        (totalPages === 0 && page > 1) ||
+        (totalPages > 0 && page > totalPages)
+      ) {
         return c.json({ message: "Page not found", data: null }, 404);
       }
 
@@ -94,7 +100,7 @@ class ProductController {
         message: "Get products success",
         data: products,
         pagination: {
-          currentPage: request.page,
+          currentPage: page,
           perPage: request.perPage,
           totalPages: totalPages,
           totalItems: totalItems,
@@ -338,8 +344,14 @@ class ProductController {
       const totalItems = await ProductHistoryModel.count(productId, request);
       const totalPages = Math.ceil(totalItems / request.perPage);
 
-      // if page is greater than total pages, return 404
-      if (request.page > totalPages) {
+      // Check if page is valid
+      const page = request.page;
+
+      if (
+        page < 1 ||
+        (totalPages === 0 && page > 1) ||
+        (totalPages > 0 && page > totalPages)
+      ) {
         return c.json({ message: "Page not found", data: null }, 404);
       }
 
