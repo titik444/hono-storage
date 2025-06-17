@@ -117,10 +117,6 @@ class ProductController {
       const id = c.req.param("id");
       const product = await this.productMustExist(id);
 
-      if (!product) {
-        return c.json({ message: "Product not found", data: null }, 404);
-      }
-
       return c.json({ message: "Get product success", data: product });
     } catch (error) {
       Log.error(
@@ -148,6 +144,7 @@ class ProductController {
         await productUpdateValidation.parse(data);
 
       await this.productMustExist(id);
+      await this.productMustActive(id);
 
       const productExist = await ProductModel.findBySkuNotId(id, sku);
       if (productExist) {
@@ -188,16 +185,37 @@ class ProductController {
   async deleteProduct(c: Context) {
     try {
       const id = c.req.param("id");
-      const productExist = await this.productMustExist(id);
-
-      if (!productExist) {
-        return c.json({ message: "Product not found", data: null }, 404);
-      }
+      await this.productMustExist(id);
 
       const product = await ProductModel.delete(id);
       return c.json({ message: "Delete product success", data: product });
     } catch (error) {
       Log.error("Error ./controllers/ProductController.deleteProduct " + error);
+      if (error instanceof Error) {
+        let message = error.message;
+        try {
+          message = JSON.parse(error.message)[0].message;
+        } catch {
+          message = error.message;
+        }
+        return c.json({ message, data: null }, 400);
+      } else {
+        return c.json({ message: "Internal Server Error", data: null }, 500);
+      }
+    }
+  }
+
+  async restoreProduct(c: Context) {
+    try {
+      const id = c.req.param("id");
+      await this.productMustExist(id);
+
+      const product = await ProductModel.restore(id);
+      return c.json({ message: "Restore product success", data: product });
+    } catch (error) {
+      Log.error(
+        "Error ./controllers/ProductController.restoreProduct " + error
+      );
       if (error instanceof Error) {
         let message = error.message;
         try {
@@ -227,6 +245,7 @@ class ProductController {
       }
 
       const product = await this.productMustExist(productId);
+      await this.productMustActive(productId);
 
       const stockBefore = product!.stock;
       const stockAfter = stockBefore + quantity;
@@ -281,6 +300,7 @@ class ProductController {
       }
 
       const product = await this.productMustExist(productId);
+      await this.productMustActive(productId);
 
       if (product!.stock < quantity) {
         return c.json({ message: "Insufficient stock", data: null }, 400);
@@ -328,11 +348,7 @@ class ProductController {
     try {
       const productId = c.req.param("id");
 
-      const product = await this.productMustExist(productId);
-
-      if (!product) {
-        return c.json({ message: "Product not found", data: null }, 404);
-      }
+      await this.productMustExist(productId);
 
       const request = {
         keyword: c.req.query("q")?.toString() || "",
@@ -391,6 +407,13 @@ class ProductController {
     }
 
     return product;
+  }
+
+  async productMustActive(productId: string) {
+    const product = await ProductModel.findById(productId);
+    if (product!.status !== "ACTIVE") {
+      throw new Error("Product is not active");
+    }
   }
 }
 

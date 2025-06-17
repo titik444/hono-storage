@@ -23,6 +23,11 @@ class UserController {
       if (!userCheck) {
         return c.json({ message: "User not found", data: null }, 404);
       }
+
+      if (userCheck.status === "INACTIVE") {
+        return c.json({ message: "User is inactive", data: null }, 400);
+      }
+
       // process login
       const user = await UserModel.verifyUser(email, password);
       let token = null;
@@ -180,10 +185,6 @@ class UserController {
       const id = c.req.param("id");
       const user = await this.userMustExist(id);
 
-      if (!user) {
-        return c.json({ message: "User not found", data: null }, 404);
-      }
-
       return c.json({ message: "Get user success", data: user });
     } catch (error) {
       Log.error("Error ./controllers/UserController.getUserById " + error);
@@ -204,11 +205,7 @@ class UserController {
   async updateUser(c: Context) {
     try {
       const id = c.req.param("id");
-      const userExist = await this.userMustExist(id);
-
-      if (!userExist) {
-        return c.json({ message: "User not found", data: null }, 404);
-      }
+      await this.userMustExist(id);
 
       const { email } = await c.req.json();
 
@@ -243,16 +240,35 @@ class UserController {
   async deleteUser(c: Context) {
     try {
       const id = c.req.param("id");
-      const userExist = await this.userMustExist(id);
-
-      if (!userExist) {
-        return c.json({ message: "User not found", data: null }, 404);
-      }
+      await this.userMustExist(id);
 
       const user = await UserModel.delete(id);
       return c.json({ message: "Delete user success", data: user });
     } catch (error) {
       Log.error("Error ./controllers/UserController.deleteUser " + error);
+      if (error instanceof Error) {
+        let message = error.message;
+        try {
+          message = JSON.parse(error.message)[0].message;
+        } catch {
+          message = error.message;
+        }
+        return c.json({ message, data: null }, 400);
+      } else {
+        return c.json({ message: "Internal Server Error", data: null }, 500);
+      }
+    }
+  }
+
+  async restoreUser(c: Context) {
+    try {
+      const id = c.req.param("id");
+      await this.userMustExist(id);
+
+      const user = await UserModel.restore(id);
+      return c.json({ message: "Restore user success", data: user });
+    } catch (error) {
+      Log.error("Error ./controllers/UserController.restoreUser " + error);
       if (error instanceof Error) {
         let message = error.message;
         try {

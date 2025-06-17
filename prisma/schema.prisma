@@ -40,20 +40,26 @@ enum UserStatus {
 }
 
 model Product {
-  id          String   @id @default(cuid()) @map("id")
-  sku         String   @unique @map("sku")
-  name        String   @unique@map("name")
-  ptName      String   @map("pt_name")
-  description String?  @map("description")
-  stock       Int      @map("stock")
-  createdBy   String   @map("created_by")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id          String        @id @default(cuid()) @map("id")
+  sku         String        @unique @map("sku")
+  name        String        @unique @map("name")
+  ptName      String        @map("pt_name")
+  description String?       @map("description")
+  stock       Int           @map("stock")
+  status      ProductStatus @default(ACTIVE) @map("status")
+  createdBy   String        @map("created_by")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
 
   user           User             @relation(fields: [createdBy], references: [id], onDelete: Restrict, onUpdate: Restrict)
   ProductHistory ProductHistory[]
 
   @@map("product")
+}
+
+enum ProductStatus {
+  ACTIVE
+  DELETED
 }
 
 model ProductHistory {

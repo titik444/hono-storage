@@ -17,5 +17,6 @@ userRoute.get("/user", (c) => UserController.getAllUser(c));
 userRoute.get("/user/:id", (c) => UserController.getUserById(c));
 userRoute.put("/user/:id", (c) => UserController.updateUser(c));
 userRoute.delete("/user/:id", (c) => UserController.deleteUser(c));
+userRoute.patch("/user/:id/restore", (c) => UserController.restoreUser(c));
 
 export default userRoute;

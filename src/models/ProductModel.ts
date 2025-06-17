@@ -25,7 +25,17 @@ class ProductModel implements IProductModel {
   }
 
   async delete(id: string): Promise<Product> {
-    return await this.prisma.product.delete({ where: { id } });
+    return await this.prisma.product.update({
+      where: { id },
+      data: { status: "DELETED" },
+    });
+  }
+
+  async restore(id: string): Promise<Product> {
+    return await this.prisma.product.update({
+      where: { id },
+      data: { status: "ACTIVE" },
+    });
   }
 
   async findById(id: string): Promise<Product | null> {

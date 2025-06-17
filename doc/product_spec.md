@@ -44,6 +44,7 @@ Response
     "ptName": "PT. AAA",
     "description": "baju murah",
     "stock": 20,
+    "status": "ACTIVE",
     "createdBy": "cmbj1uiaw0000tvlo7c6ak28k",
     "createdAt": "2025-06-14T09:33:28.015Z",
     "updatedAt": "2025-06-14T09:33:28.015Z"
@@ -94,6 +95,7 @@ Response
       "ptName": "PT. AAA",
       "description": "baju murah",
       "stock": 20,
+      "status": "ACTIVE",
       "createdBy": "cmbj1uiaw0000tvlo7c6ak28k",
       "createdAt": "2025-06-14T09:33:28.015Z",
       "updatedAt": "2025-06-14T09:33:28.015Z"
@@ -105,6 +107,7 @@ Response
       "ptName": "PT. AAA",
       "description": "baju murah",
       "stock": 20,
+      "status": "ACTIVE",
       "createdBy": "cmbj1uiaw0000tvlo7c6ak28k",
       "createdAt": "2025-06-14T09:33:28.015Z",
       "updatedAt": "2025-06-14T09:33:28.015Z"
@@ -147,6 +150,7 @@ Response
     "ptName": "PT. AAA",
     "description": "baju murah",
     "stock": 20,
+    "status": "ACTIVE",
     "createdBy": "cmbj1uiaw0000tvlo7c6ak28k",
     "createdAt": "2025-06-14T09:33:28.015Z",
     "updatedAt": "2025-06-14T09:33:28.015Z"
@@ -202,6 +206,7 @@ Response
     "ptName": "PT. AAA",
     "description": "baju murah",
     "stock": 20,
+    "status": "ACTIVE",
     "createdBy": "cmbj1uiaw0000tvlo7c6ak28k",
     "createdAt": "2025-06-14T09:33:28.015Z",
     "updatedAt": "2025-06-14T09:33:28.015Z"
@@ -223,6 +228,96 @@ Response
 ```json
 {
   "message": "Product sku is required",
+  "data": null
+}
+```
+
+## Delete Product By Id
+
+Endpoint :
+
+- DELETE {{BASE_URL}}/product/:id
+
+Request
+
+- Header :
+
+  Content-Type: application/json
+
+  Authorization: Bearer {accessToken}
+
+Response
+
+- Success (200)
+
+```json
+{
+  "message": "Product deleted successfully",
+  "data": {
+    "id": "cmbw1h1e7000ctvc0vuylr907",
+    "sku": "sku-001",
+    "name": "baju murah",
+    "ptName": "PT. AAA",
+    "description": "baju murah",
+    "stock": 20,
+    "status": "DELETED",
+    "createdBy": "cmbj1uiaw0000tvlo7c6ak28k",
+    "createdAt": "2025-06-14T09:33:28.015Z",
+    "updatedAt": "2025-06-14T09:33:28.015Z"
+  }
+}
+```
+
+- Error (404)
+
+```json
+{
+  "message": "Product not found",
+  "data": null
+}
+```
+
+## Product Restore By Id
+
+Endpoint :
+
+- PATCH {{BASE_URL}}/product/:id/restore
+
+Request
+
+- Header :
+
+  Content-Type: application/json
+
+  Authorization: Bearer {accessToken}
+
+Response
+
+- Success (200)
+
+```json
+{
+  "message": "Product restored successfully",
+  "data": {
+    "id": "cmbw1h1e7000ctvc0vuylr907",
+    "sku": "sku-001",
+    "name": "baju murah",
+    "ptName": "PT. AAA",
+    "description": "baju murah",
+    "stock": 20,
+    "status": "ACTIVE",
+    "createdBy": "cmbj1uiaw0000tvlo7c6ak28k",
+    "createdAt": "2025-06-14T09:33:28.015Z",
+    "updatedAt": "2025-06-14T09:33:28.015Z"
+  }
+}
+```
+
+- Error (404)
+
+```json
+{
+  "message": "Product not found",
   "data": null
 }
 ```
@@ -263,6 +358,7 @@ Response
     "ptName": "PT. AAA",
     "description": "baju murah",
     "stock": 30,
+    "status": "ACTIVE",
     "createdBy": "cmbj1uiaw0000tvlo7c6ak28k",
     "createdAt": "2025-06-14T09:33:28.015Z",
     "updatedAt": "2025-06-14T09:33:28.015Z"
@@ -324,6 +420,7 @@ Response
     "ptName": "PT. AAA",
     "description": "baju murah",
     "stock": 10,
+    "status": "ACTIVE",
     "createdBy": "cmbj1uiaw0000tvlo7c6ak28k",
     "createdAt": "2025-06-14T09:33:28.015Z",
     "updatedAt": "2025-06-14T09:33:28.015Z"

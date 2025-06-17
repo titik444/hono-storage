@@ -11,6 +11,9 @@ productRoute.get("/product", (c) => ProductController.getAllProduct(c));
 productRoute.get("/product/:id", (c) => ProductController.getProductById(c));
 productRoute.put("/product/:id", (c) => ProductController.updateProduct(c));
 productRoute.delete("/product/:id", (c) => ProductController.deleteProduct(c));
+productRoute.patch("/product/:id/restore", (c) =>
+  ProductController.restoreProduct(c)
+);
 productRoute.post("/product/:id/stock-in", (c) =>
   ProductController.increaseStock(c)
 );

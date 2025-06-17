@@ -75,10 +75,32 @@ class UserModel implements IUserModel {
    * @throws {Error} If the user is not found.
    */
   async delete(id: string): Promise<User> {
-    return await prisma.user.delete({ where: { id } }).then((user) => {
-      user.password = "********";
-      return user;
-    });
+    // return await prisma.user.delete({ where: { id } }).then((user) => {
+    //   user.password = "********";
+    //   return user;
+    // });
+
+    return await prisma.user
+      .update({
+        where: { id },
+        data: { status: "INACTIVE" },
+      })
+      .then((user) => {
+        user.password = "********";
+        return user;
+      });
+  }
+
+  async restore(id: string): Promise<User> {
+    return await prisma.user
+      .update({
+        where: { id },
+        data: { status: "ACTIVE" },
+      })
+      .then((user) => {
+        user.password = "********";
+        return user;
+      });
   }
 
   /**
